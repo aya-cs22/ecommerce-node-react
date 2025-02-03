@@ -44,11 +44,6 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false // user need to virify your email
     },
-    country:{
-        type:String,
-        required: [true, 'Country is required'],
-        enum:['Egypt']
-    },
     phoneNumber:{
         type:String,
         required:[true, 'Phone Number is requred'],
@@ -59,7 +54,7 @@ const userSchema = new mongoose.Schema({
     },
 
     emailVerificationCode:{
-        type:String,
+        type:Number,
         default:null,
         minlenght:[6,'Email verification code must be exactly 6 characters'],
         maxlenght:[6,'Email verification code must be exactly 6 characters'],
