@@ -21,25 +21,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'User must have a password'],
         minlength: 8,
-        select: false, // To hide the password when retrieving user data
-        validate: {
-        validator: function (value) {
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
-        },
-        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-        },
+        // select: false, // To hide the password when retrieving user data
+        // validate: {
+        // validator: function (value) {
+        // return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
+        // },
+        // message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        // },
     },
 
-    confirmPassword:{
-        type:String,
-        required: [true, 'Please confirme your Password'],
-        validate: {
-        validator: function(value){
-            return value === this.password;
-        },
-        message: 'Password are not the same.'
-        },
-    },
+   
     isVerified: {
         type: Boolean,
         default: false // user need to virify your email
@@ -54,7 +45,7 @@ const userSchema = new mongoose.Schema({
     },
 
     emailVerificationCode:{
-        type:Number,
+        type:String,
         default:null,
         minlenght:[6,'Email verification code must be exactly 6 characters'],
         maxlenght:[6,'Email verification code must be exactly 6 characters'],
@@ -86,7 +77,11 @@ const userSchema = new mongoose.Schema({
         type:String,
         enum:['admin', 'sub-admin', 'user'],
         default: 'user',
-    }
+    },
+    refreshToken:{
+        type:String,
+        default:null
+    },
 },
 { timestamps: true },
 );
@@ -94,7 +89,7 @@ const userSchema = new mongoose.Schema({
 
 //Befor saving the user
 userSchema.pre('save', async function (next) {
-    if(!this.isModified('password')) return next();
+    if(!this.isModified('password') ) return next();
     // Encrypt the Password Before Saving
     this.password = await bcrypt.hash(this.password, 10);
     next();
