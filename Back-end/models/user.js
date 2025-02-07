@@ -76,7 +76,9 @@ const userSchema = new mongoose.Schema({
     role:{
         type:String,
         enum:['admin', 'sub-admin', 'user'],
-        default: 'user',
+        default: function () {
+            return this.email === process.env.ADMIN_EMAIL ? 'admin' : 'user';
+          }
     },
     refreshToken:{
         type:String,
