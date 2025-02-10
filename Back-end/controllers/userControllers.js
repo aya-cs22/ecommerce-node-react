@@ -8,7 +8,7 @@ const { compare } = require('bcrypt');
 
 
 function  generateTokens(user , regenerateRefreshToken = false){
-    const accessToken = jwt.sign({userId: user._id} , process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'});
+    const accessToken = jwt.sign({userId: user._id} , process.env.ACCESS_TOKEN_SECRET, {expiresIn: '5h'});
     let refreshToken = user.refreshToken;
     if(regenerateRefreshToken || !refreshToken){
         refreshToken = jwt.sign({userId: user._id}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '10d'});
@@ -275,16 +275,98 @@ exports.addUserByAdmin = asyncHandler(async(req, res) =>{
     });
     await newUser.save();
     return res.status(200).json({message: "user added sucessfully"})
-})
+});
+
+
 //getUserByhimself 
+exports.getUserByhimself = asyncHandler(async(req, res) => {
+    const userIdFromToken = req.user.id;
+    const user = await User.findById(userIdFromToken).lean();
+    if(!user){
+        return res.status(404).json({message: "User not found"})
+    }
+    user.role = undefined;
+    user.refreshToken = undefined
+    return res.status(200).json(user)
+});
+
 
 //getUserByid 
+exports.getUserByIdByAdmin = asyncHandler(async(req, res) =>{
+    const {userId} = req.params;
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Admins only.' });
+    } 
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    const user = await User.findById(userId).lean();
+    if(!user){
+        return res.status(404).json({message: "User not found"});
+    }
+    user.password = undefined;
+    return res.status(200).json(user);
+});
 
 //getAllUsers 
+exports.getAllUserByAdmin = asyncHandler(async(req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+    const users = await User.find().select('-password').lean();
+    return res.status(200).json(users)
+});
 
 //updateUser
+exports.updateUser = asyncHandler(async(req, res) =>{
+    const userIdFromToken = req.user.id;
+    const user = await User.findById(userIdFromToken);
+    if(!user){
+        return res.status(404).json({message: "user not found"});
+    }
+    const {userName, password, phoneNumber} = req.body;
+    if(userName) user.userName = userName;
+    if(password) user.password =password;
+    if(phoneNumber) user.phoneNumber = phoneNumber;
+    await user.save();
+    const {refreshToken, role, ...userResponse} = user.toObject();
+    return res.status(200).json({message: "user upate successfully", user: userResponse});
+})
 
-// updateUserRole 
+// update Role User By Admin 
+exports.updateRoleUserByAdmin = asyncHandler(async(req, res) =>{
+    if(req.user.role !== 'admin'){
+        return res.status(403).json({message: "Access denied. Admins only."});
+    } 
+    const {userId} = req.params;
+    const user = await User.findById(userId);
+    if(!user){
+        return res.status(404).json({message: "user not found"});
+    }
+    const{role} = req.body;
+    user.role = role;
+    await user.save();
+    return res.status(200).json({message : "role user update  successfully"})
+});
+
 
 //deleteUser
+exports.deletUser = asyncHandler(async(req, res) =>{
+    const isAdmin = req.user.role === "admin";
+    const userId = req.user.role === "admin" ? req.params.userId : req.user.id;
+    console.log(req.user.role !== 'admin' &&  req.params.userId)
+    if(req.user.role !== 'admin' &&  req.params.userId){
+        return res.status(403).json({ message: "Unauthorized: You can only delete your own account" });
+    }
+    const user = await User.findById(userId);
+    if(!user){
+        return res.status(404).json({message: "User not found"});
+    }
 
+    // await Promise.all([
+    //     order.deleteMany({userId}), // all schema
+    // ])
+    
+    await User.findByIdAndDelete(userId);
+    return res.status(204).json({message: "user deleted successfully"});
+})
