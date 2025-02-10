@@ -2,7 +2,9 @@ const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require("morgan");
 const mongoose = require("mongoose");
+const cors = require('cors');
 dotenv.config({ path: 'config.env' });
+
 const dbConecction = require('./config/database');
 const ApiError = require('./utils/appError');
 const globalError = require('./middleware/errorMiddleWare')
@@ -10,6 +12,8 @@ dbConecction();
 const userRoutes = require('./routes/userRoutes');
 //express app
 const app = express();
+app.use(cors());
+
 //MiddleWare
 if(process.env.NODE_ENV==="development"){
     app.use(morgan('dev'));
