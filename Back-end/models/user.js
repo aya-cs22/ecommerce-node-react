@@ -5,8 +5,7 @@ const userSchema = new mongoose.Schema({
     userName:{
         type: String,
         required: [true, 'Name is required.'],
-        minlength:[3, 'Name cannot be shorter than 3 characters'],
-        maxlength:[40, 'Name cannot be longger than 40 characters'],
+       
     },
     email: {
         type: String,
@@ -61,8 +60,7 @@ const userSchema = new mongoose.Schema({
     emailVerificationCode:{
         type:String,
         default:null,
-        minlength:[6,'Email verification code must be exactly 6 characters'],
-        maxlength:[6,'Email verification code must be exactly 6 characters'],
+       
     },
 
     verificationCodeExpiry: { // Verification code expiration date
