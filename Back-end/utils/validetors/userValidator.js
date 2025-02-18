@@ -3,8 +3,16 @@ const User = require('../../models/user');
 const userValidator = [
     // Validate userName
     check('userName')
-        .notEmpty().withMessage('Name is required.')
-        .isLength({ min: 3, max: 30 }).withMessage('Name must be between 3 and 30 characters.'),
+    .notEmpty().withMessage('Name is required.')
+    .trim().withMessage('Name cannot have leading or trailing spaces.')
+    .isLength({ min: 3, max: 30 }).withMessage('Name must be between 3 and 30 characters.')
+    .matches(/^[A-Za-z0-9 ]+$/).withMessage('Name must contain only letters, numbers, and spaces.')
+    .custom((value) => {
+        if (value.trim().length !== value.length) {
+            throw new Error('Name cannot have leading or trailing spaces.');
+        }
+        return true;
+    }),
 
     // Validate email
     check('email')
