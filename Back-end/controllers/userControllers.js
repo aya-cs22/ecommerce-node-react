@@ -36,8 +36,11 @@ const generatCode = () =>{
 
 exports.register =asyncHandler( async(req, res) =>{
     console.log("rejester start..");
-    const {userName, email, password, phoneNumber} = req.body;
+    const {userName, email, password, confirmPassword, phoneNumber} = req.body;
     console.log(userName, email, password, phoneNumber);
+    if (password !== confirmPassword) {
+        return res.status(400).json({ message: 'Passwords do not match' });
+    }
     // check if user exists
     const user = await User.findOne({ email })
     if(user){
@@ -256,9 +259,12 @@ exports.addUserByAdmin = asyncHandler(async(req, res) =>{
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied. Admins only.' });
     }
-    const {userName, email, password, phoneNumber, role} = req.body;
-    if(!userName || !email || !password || !phoneNumber|| !role){
+    const {userName, email, password, confirmPassword, phoneNumber, role} = req.body;
+    if(!userName || !email || !password || !phoneNumber|| !confirmPassword ||!role){
         return res.status(400).json({message: "Please Provied all faileds."})
+    }
+    if (password !== confirmPassword) {
+        return res.status(400).json({ message: 'Passwords do not match' });
     }
     const userExists = await User.findOne({ email });
     if(userExists){
@@ -286,7 +292,13 @@ exports.getUserByhimself = asyncHandler(async(req, res) => {
         return res.status(404).json({message: "User not found"})
     }
     user.role = undefined;
-    user.refreshToken = undefined
+    user.refreshToken = undefined;
+    user.password = undefined;
+    user.refreshTokenExpiry = undefined;
+    user.emailVerificationCode = undefined;
+    user.verificationCodeExpiry = undefined;
+    user.resetCode = undefined;
+    user.resetCodeExpiry = undefined;
     return res.status(200).json(user)
 });
 
@@ -304,7 +316,13 @@ exports.getUserByIdByAdmin = asyncHandler(async(req, res) =>{
     if(!user){
         return res.status(404).json({message: "User not found"});
     }
+    user.refreshToken = undefined;
     user.password = undefined;
+    user.refreshTokenExpiry = undefined;
+    user.emailVerificationCode = undefined;
+    user.verificationCodeExpiry = undefined;
+    user.resetCode = undefined;
+    user.resetCodeExpiry = undefined;
     return res.status(200).json(user);
 });
 
@@ -313,8 +331,24 @@ exports.getAllUserByAdmin = asyncHandler(async(req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied. Admins only.' });
     }
-    const users = await User.find().select('-password').lean();
-    return res.status(200).json(users)
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    const totalUsers = await User.countDocuments();
+
+    const users = await User.find()
+    .select('-password -refreshToken -refreshTokenExpiry -emailVerificationCode -verificationCodeExpiry -resetCode -resetCodeExpiry')
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+
+    return res.status(200).json({
+        totalUsers,
+        totalPages: Math.ceil(totalUsers / limit),
+        currentPage: page,
+        users
+    });
 });
 
 //updateUser
@@ -324,13 +358,13 @@ exports.updateUser = asyncHandler(async(req, res) =>{
     if(!user){
         return res.status(404).json({message: "user not found"});
     }
-    const {userName, password, phoneNumber} = req.body;
+    const {userName, password, phoneNumber, profilePicture} = req.body;
     if(userName) user.userName = userName;
     if(password) user.password =password;
     if(phoneNumber) user.phoneNumber = phoneNumber;
+    if(profilePicture) user.profilePicture = profilePicture;
     await user.save();
-    const {refreshToken, role, ...userResponse} = user.toObject();
-    return res.status(200).json({message: "user upate successfully", user: userResponse});
+    return res.status(200).json({message: "user upate successfully"});
 })
 
 // update Role User By Admin 

@@ -13,7 +13,7 @@ const subCategorySchema = new mongoose.Schema({
         lowerCase:true,
     },
     image: String,
-    category:{
+    categoryId:{
         type:mongoose.Schema.ObjectId,
         ref:'Category',
         required:[true, 'SubCategory must reference a parent category']

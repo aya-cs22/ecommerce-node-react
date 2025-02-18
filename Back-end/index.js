@@ -10,6 +10,8 @@ const ApiError = require('./utils/appError');
 const globalError = require('./middleware/errorMiddleWare')
 dbConecction();
 const userRoutes = require('./routes/userRoutes');
+const catergoryRoutes = require('./routes/catergoryRoutes')
+const subCategoryRoutes = require('./routes/subCategoryRoutes');
 //express app
 const app = express();
 app.use(cors());
@@ -23,6 +25,9 @@ app.use(express.json())
 
     
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/catergory', catergoryRoutes);
+app.use('/api/v1/subcatergory', subCategoryRoutes);
+
 
 app.all('*', (req, res, next) =>{
     next (new ApiError(`Can't Find this route: ${req.originalUrl}`, 400)) 
