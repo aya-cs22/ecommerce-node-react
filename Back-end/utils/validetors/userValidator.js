@@ -5,7 +5,7 @@ const userValidator = [
     check('userName')
     .notEmpty().withMessage('Name is required.')
     .trim().withMessage('Name cannot have leading or trailing spaces.')
-    .isLength({ min: 3, max: 30 }).withMessage('Name must be between 3 and 30 characters.')
+    .isLength({ min: 3, max: 20 }).withMessage('Name must be between 3 and 20 characters.')
     .matches(/^[A-Za-z0-9 ]+$/).withMessage('Name must contain only letters, numbers, and spaces.')
     .custom((value) => {
         if (value.trim().length !== value.length) {
