@@ -64,7 +64,9 @@ exports.getAllsubCategories = asyncHandler(async(req, res) =>{
     });
 });
 
+exports.updateSubCategory = asyncHandler(async(req, res) =>{
 
+});
 
 exports.deletesubCategory = asyncHandler(async(req, res) =>{
 

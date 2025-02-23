@@ -21,9 +21,9 @@ const registerValidator = [
 
     check('password')
         .notEmpty().withMessage('Password is required.')
-        .isLength({ min: 8, max: 20 }).withMessage('Password must be between 8 and 20 characters.')
-        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
-        .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'),
+        .isLength({ min: 8, max: 20 }).withMessage('Password must be between 8 and 20 characters.'),
+        // .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        // .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'),
 
     check('confirmPassword')
         .notEmpty().withMessage('Please confirm your password.')
@@ -51,9 +51,9 @@ const updateUserValidator = [
 
     check('password')
         .notEmpty().withMessage('Password is required.')
-        .isLength({ min: 8, max: 20 }).withMessage('Password must be between 8 and 20 characters.')
-        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
-        .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'),
+        .isLength({ min: 8, max: 20 }).withMessage('Password must be between 8 and 20 characters.'),
+        // .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        // .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'),
 
     check('phoneNumber')
         .notEmpty().withMessage('Phone number is required.')
