@@ -12,6 +12,8 @@ dbConecction();
 const userRoutes = require('./routes/userRoutes');
 const catergoryRoutes = require('./routes/catergoryRoutes')
 const subCategoryRoutes = require('./routes/subCategoryRoutes');
+const brandRoutes = require('./routes/brandRoutes');
+const productRoutes = require('./routes/productRoutes');
 //express app
 const app = express();
 app.use(cors());
@@ -27,6 +29,8 @@ app.use(express.json())
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/catergory', catergoryRoutes);
 app.use('/api/v1/subcatergory', subCategoryRoutes);
+app.use('/api/v1/brand', brandRoutes)
+app.use('/api/v1/product', productRoutes)
 
 
 app.all('*', (req, res, next) =>{

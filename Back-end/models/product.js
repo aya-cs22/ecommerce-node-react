@@ -1,87 +1,87 @@
-const { MongoDBCollectionNamespace } = require('mongodb');
 const mongoose = require('mongoose');
+
 const productSchema = new mongoose.Schema({
-    productName:{
-        type:String,
+    productName: {
+        type: String,
         trim: true,
-        required:[true, 'product Name is required'],
-        minlenght:[3, 'product Name cannot be shorter than 3 characters'],
-        maxlength:[40, 'product Name cannot be longger than 40 characters'],
+        required: [true, 'Product name is required'],
+    
     },
-    slug:{
-        type:String,
-        required:true,
-        lowerCase:true,
+    slug: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        set: (val) => val.toLowerCase()
     },
-
-    description:{
-        type:String,
-        required:[true, 'Description is requird'],
-        minlenght:[10, 'Description shorter than 10 characters'],
-        maxlength:[70, 'Description longger than 70 characters'],
+    description: {
+        type: String,
+        required: [true, 'Description is required'],
+        
     },
-    category:{
-        type:mongoose.Schema.ObjectId,
-        required:[true, 'Category is required'],
-        ref:'Category'
+    categoryId: {
+        type: mongoose.Schema.ObjectId,
+        required: [true, 'Category is required'],
+        ref: 'Category'
     },
-
-    subcategories:{
-        type:mongoose.Schema.ObjectId,
-        required:[true, 'subCategory is required'],
-        ref:'subCategory'
-    },
-    brand:{
-        types: mongoose.Schema.ObjectId,
+    subcategoriesId: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'SubCategory'
+    }],
+    brandId: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Brand',
         required: [true, 'Brand is required']
     },
-
-    colors:{
-        type:[String],
-        required:[true, 'Color is required'],
+    colors: {
+        type: [String],
+        required: [true, 'At least one color is required'],
+        validate: {
+            validator: function (val) {
+                return Array.isArray(val) && val.length > 0;
+            },
+            message: 'At least one color is required'
+        },
+        set: (val) => [...new Set(val.map(color => color.toLowerCase()))] // Remove duplicates and unify letters
     },
-    imageCover:{
-        type:String,
-        required:[true, 'image Cover is required']
+    
+    imageCover: {
+        type: String,
     },
-
-    price:{
-        type:Number,
-        required:[true, 'Price is required'],
-    },
-    images:[String],
-    stock:{
-        type:Number,
-        required:[true, 'Product stock is required']
-    },
-    sold:{
+    price: {
         type: Number,
-        default:0,
+        required: [true, 'Price is required'],
     },
-    priceAfterDiscount:{
-        type:Number,
+    discountPercentage: {
+        type: Number,
+        default: 0
     },
+    images: [String],
+    stock: {
+        type: Number,
+        required: [true, 'Product stock is required']
+    },
+    sold: {
+        type: Number,
+        default: 0,
+    }
+}, { timestamps: true });
+productSchema.pre('save', function (next) {
+    this.priceAfterDiscount = this.price - (this.price * this.discountPercentage / 100);
+    next();
+});
 
-           
-//  ratingsAverage // 4.8
-//  ratingsQuantity // person  100
-//  ratingSum //480
-    ratingsAverage:{
-        type:Number,
-        min: [1, 'Rating must be above or equal 1'],
-        max: [5, 'Rating must be below or equal 5'],
-    },
-    ratingsQuantity:{
-        type:Number,
-        deafult :0,
-    },
-    ratingSum:{
-        type:Number,
-        deafult:0,
-    },
-},
-{timestamps},
-);
+// productSchema.index({ slug: 1 });
+// productSchema.index({ category: 1 });
+// productSchema.index({ brand: 1 });
+// productSchema.index({ category: 1, brand: 1 });
+// productSchema.index({ price: 1 });
+
+productSchema.virtual('reviews', {
+    ref: 'Review',
+    localField: '_id',
+    foreignField: 'product'
+});
 
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;

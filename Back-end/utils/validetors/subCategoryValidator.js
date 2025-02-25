@@ -15,16 +15,6 @@ const subCategoryValidator = [
         .isURL().withMessage('Invalid image URL.')
         .trim(),
 
-    check("categoryId")
-        .notEmpty().withMessage("Category ID is required.")
-        .isMongoId().withMessage("Invaild category ID format.")
-        .custom(async(value) =>{
-            const category = await Category.findById(value);
-            if(!category){
-                throw new Error("Category not foundddd");
-            }
-        })
-
 ];
 
 module.exports = {

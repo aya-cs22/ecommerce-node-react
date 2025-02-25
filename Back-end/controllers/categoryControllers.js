@@ -5,7 +5,7 @@ const asyncHandler = require('express-async-handler');
 // create category by admin
 exports.createCategory = asyncHandler(async(req, res) =>{
     if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Access denied. Mangers only.' });
+        return res.status(403).json({ message: 'Access denied. Admin only.' });
     } 
     const {name, image} = req.body;
     const slug = slugify(name, { lower: true }); 
@@ -37,7 +37,7 @@ exports.getCategoryById = asyncHandler(async(req, res) => {
 
 // get all  categories (not required  token)
 exports.getAllCategories = asyncHandler(async(req, res) =>{
-    let { page = 1, limit = 5 } = req.query;
+    let { page = 1, limit = 10 } = req.query;
     page = parseInt(page);
     limit = parseInt(limit);
 
