@@ -97,4 +97,4 @@ exports.deleteBrand = asyncHandler(async(req, res) =>{
 
     await Brand.findByIdAndDelete(brandId);
     return res.status(204).json({message : "Brand delete Successfully"});
-})
+});

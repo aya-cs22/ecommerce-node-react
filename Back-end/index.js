@@ -14,6 +14,9 @@ const catergoryRoutes = require('./routes/catergoryRoutes')
 const subCategoryRoutes = require('./routes/subCategoryRoutes');
 const brandRoutes = require('./routes/brandRoutes');
 const productRoutes = require('./routes/productRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
+const reviewRoutes = require('./routes/serviceRoutes');
+
 //express app
 const app = express();
 app.use(cors());
@@ -31,6 +34,8 @@ app.use('/api/v1/catergory', catergoryRoutes);
 app.use('/api/v1/subcatergory', subCategoryRoutes);
 app.use('/api/v1/brand', brandRoutes)
 app.use('/api/v1/product', productRoutes)
+app.use('/api/v1/service', serviceRoutes)
+app.use('/api/v1/service', serviceRoutes)
 
 
 app.all('*', (req, res, next) =>{

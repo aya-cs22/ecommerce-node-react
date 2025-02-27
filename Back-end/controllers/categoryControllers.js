@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const Category = require('../models/category');
+const Prodct = require('../models/product');
+const SubCategories = require('../models/subCategory');
+const Service = require('../models/service');
 const slugify = require('slugify');
 const asyncHandler = require('express-async-handler');
 // create category by admin
@@ -84,6 +87,7 @@ exports.updateCategory = asyncHandler(async(req, res) =>{
 
 // delet category by id by admin
 exports.deleteCategory = asyncHandler(async(req, res) =>{
+    
     const {categoryId} = req.params;
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied. Mangers only.' });
@@ -92,10 +96,28 @@ exports.deleteCategory = asyncHandler(async(req, res) =>{
     if (!/^[0-9a-fA-F]{24}$/.test(categoryId)) {
         return res.status(400).json({ message: 'Invalid Category ID format' });
     }
-    const category = await Category.findById(categoryId);
-    if(!category){
-        return res.status(404).json({messsage : "Category not found"});
+
+    //Start Session
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try{
+        const category = await Category.findById(categoryId);
+        if(!category){
+            return res.status(404).json({messsage : "Category not found"});
+        }
+        await Prodct.deleteMany({ categoryId }).session(session);
+        await Service.deleteMany({ categoryId }).session(session);
+        await SubCategories.deleteMany({ categoryId }).session(session);
+        await Category.findByIdAndDelete(categoryId).session(session);
+
+        //Comfirme changes and end session
+        await session.commitTransaction();
+        session.endSession();
+        return res.status(204).json({message: "Category deleted Successfully"});
+    } catch {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Something went wrong", error: error.message });
     }
-    await Category.findByIdAndDelete(categoryId);
-    return res.status(204).json({message: "Category deleted Successfully"});
+    
 });

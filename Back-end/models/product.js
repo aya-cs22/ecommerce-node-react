@@ -9,7 +9,6 @@ const productSchema = new mongoose.Schema({
     },
     slug: {
         type: String,
-        required: true,
         unique: true,
         trim: true,
         set: (val) => val.toLowerCase()
@@ -26,6 +25,7 @@ const productSchema = new mongoose.Schema({
     },
     subcategoriesId: [{
         type: mongoose.Schema.ObjectId,
+        required: [true, 'SubCategory is required'],
         ref: 'SubCategory'
     }],
     brandId: {

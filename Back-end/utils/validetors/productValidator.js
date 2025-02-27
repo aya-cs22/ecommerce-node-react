@@ -8,7 +8,7 @@ const productValidator = [
     check('productName')
         .notEmpty().withMessage('Product name is required')
         .isLength({min: 3, max: 50}).withMessage('Product name must be between 3 and 50 characters.')
-        .matches(/^[a-zA-Z0-9\s]+$/).withMessage('Produt Name  must contain Only letters, numbers and space')
+        // .matches(/^[a-zA-Z0-9\s]+$/).withMessage('Produt Name  must contain Only letters, numbers and space')
         .trim()
         .escape(), // Convert any special characters to secure code to prevent XSS
 
@@ -16,7 +16,7 @@ const productValidator = [
     check('description')
     .notEmpty().withMessage('Description is required')
     .isLength({min: 3, max: 500}).withMessage('Product name must be between 3 and 500 characters.')
-    .matches(/^[a-zA-Z0-9\s]+$/).withMessage('Produt Name  must contain Only letters, numbers and space')
+    // .matches(/^[a-zA-Z0-9\s]+$/).withMessage('Produt Name  must contain Only letters, numbers and space')
     .trim()
     .escape(),
 
@@ -46,16 +46,8 @@ const productValidator = [
         }),
     
      //Check imageCover
-    check('imageCover')
-        .trim()
-        .escape()
-        .custom(images => {
-            if (!images.every(url => /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(url))) {
-                throw new Error('Each image must be a valid URL ending with .jpg, .jpeg, .png, .webp, or .gif');
-            }
-            return true;
-        }),
     
+     
     
     //Check price
     check('price')
@@ -84,10 +76,10 @@ const productValidator = [
         .notEmpty().withMessage('Stock is required')
         .isInt({ min: 0 }).withMessage('Stock must be a positive integer'),
 
-         // Check sold
-    check('sold')
-        .optional()
-        .isInt({ min: 0 }).withMessage('Sold must be a positive integer'),
+    //      // Check sold
+    // check('sold')
+    //     .optional()
+    //     .isInt({ min: 0 }).withMessage('Sold must be a positive integer'),
 
 ];
 

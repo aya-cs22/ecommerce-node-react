@@ -1,13 +1,16 @@
 const mongoose = require('mongoose');
 const Category = require('../models/category');
 const SubCategory = require('../models/subCategory')
+const Service = require('../models/service')
+
+const Product = require('../models/product');
 
 const slugify = require('slugify');
 const asyncHandler = require('express-async-handler');
 
 exports.createsubCategory = asyncHandler(async(req, res) =>{
     if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Access denied. Mangers only.' });
+            return res.status(403).json({ message: 'Access denied. Admin only.' });
         }   
     const {name, image, categoryId} = req.body;
     if(!name || !image || !categoryId){
@@ -100,10 +103,48 @@ exports.deletesubCategory = asyncHandler(async(req, res) =>{
         return res.status(400).json({message: "Invaild SubCategory ID formate"});
     }
 
-    const subcategory = await SubCategory.findById(subcategoryId);
-    if(!subcategory){
-        return res.status(404).json({message: "subCategory not found"});
+    // Start Session and Transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try{
+        const subcategory = await SubCategory.findById(subcategoryId);
+        if(!subcategory){
+            return res.status(404).json({message: "subCategory not found"});
+        }
+        const products = await Product.find({ subcategoriesId: subcategoryId }).session(session);
+        const services = await Service.find({ subcategoriesId: subcategoryId }).session(session);
+
+        for (const service of services){
+            if(service.subcategoriesId.length > 1 ){
+                await Service.updateOne(
+                    {_id: service._id},
+                    {$pull: {subcategoriesId: subcategoryId}}
+                ).session(session);
+                
+            } else{
+                await Service.findByIdAndDelete(service._id).session(session)
+            }
+        }
+        for(const product of products){
+            if(product.subcategoriesId.length > 1){
+                await Product.updateOne(
+                    {_id: product._id},
+                    {$pull: {subcategoriesId: subcategoryId}}
+                ).session(session);
+            } else{
+                await Product.findByIdAndDelete(product._id).session(session);
+            }
+        }
+        await SubCategory.findByIdAndDelete(subcategoryId).session(session);
+
+        //confirm changes and end session
+        await session.commitTransaction();
+        session.endSession()
+        return res.status(204).json({message: "SubCategory deleted Sucessfully"});
+    } catch(error){
+        //If there is any error, all changes will be reverted.
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({message: "Something went wrong", error: error.message })
     }
-    await SubCategory.findByIdAndDelete(subcategoryId);
-    return res.status(204).json({message: "SubCategory deleted Sucessfully"});
 });

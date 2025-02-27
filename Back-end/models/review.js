@@ -3,8 +3,6 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema({
     comment: {
         type: String,
-        required: [true, 'Review text is required'],
-        minlength: [10, 'Review must be at least 10 characters'],
     },
     rating: {
         type: Number,
@@ -15,7 +13,16 @@ const reviewSchema = new mongoose.Schema({
     product: {
         type: mongoose.Schema.ObjectId,
         ref: 'Product',
-        required: [true, 'Review must belong to a product'],
+        required: function () {
+            return !this.service; // required if not service
+        }
+    },
+    service: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Service',
+        required: function () {
+            return !this.product; // required if not product
+        }
     },
     user: {
         type: mongoose.Schema.ObjectId,
@@ -24,16 +31,19 @@ const reviewSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// prevent the user writing  more than  one review for the same product
+// prevent the user writing  more than  one review for the same product or service
 reviewSchema.index({ product: 1, user: 1 }, { unique: true });
+reviewSchema.index({ service: 1, user: 1 }, { unique: true });
 
-// Calculate avarge  ratings for each operation
-reviewSchema.statics.calculateAverageRatings = async function (productId) {
+// Calculate avarge  ratings for each product or service
+reviewSchema.statics.calculateAverageRatings = async function (itemId, type) {
+    const filter = type === 'product' ? { product: itemId } : { service: itemId };
+    
     const stats = await this.aggregate([
-        { $match: { product: productId } },
+        { $match: filter },
         {
             $group: {
-                _id: '$product',
+                _id: type === 'product' ? '$product' : '$service',
                 ratingsAverage: { $avg: '$rating' },
                 ratingsQuantity: { $sum: 1 }
             }
@@ -41,34 +51,48 @@ reviewSchema.statics.calculateAverageRatings = async function (productId) {
     ]);
 
     if (stats.length > 0) {
-        await mongoose.model('Product').findByIdAndUpdate(productId, {
+        const update = {
             ratingsAverage: stats[0].ratingsAverage,
             ratingsQuantity: stats[0].ratingsQuantity
-        });
+        };
+        
+        const model = mongoose.model(type === 'product' ? 'Product' : 'Service');
+        await model.findByIdAndUpdate(itemId, update);
     } else {
-        await mongoose.model('Product').findByIdAndUpdate(productId, {
-            ratingsAverage: 1,
-            ratingsQuantity: 0
-        });
+        const reset = { ratingsAverage: 1, ratingsQuantity: 0 };
+        const model = mongoose.model(type === 'product' ? 'Product' : 'Service');
+        await model.findByIdAndUpdate(itemId, reset);
     }
 };
 
 // Update average rating when new rating is added
 reviewSchema.post('save', async function () {
-    await this.constructor.calculateAverageRatings(this.product);
+    if (this.product) {
+        await this.constructor.calculateAverageRatings(this.product, 'product');
+    } else if (this.service) {
+        await this.constructor.calculateAverageRatings(this.service, 'service');
+    }
 });
 
 // Update average rating when new rating is updated
 reviewSchema.post('findOneAndUpdate', async function (doc) {
     if (doc) {
-        await doc.constructor.calculateAverageRatings(doc.product);
+        if (doc.product) {
+            await doc.constructor.calculateAverageRatings(doc.product, 'product');
+        } else if (doc.service) {
+            await doc.constructor.calculateAverageRatings(doc.service, 'service');
+        }
     }
 });
 
 // Update average rating when new rating is deleted
 reviewSchema.post('findOneAndDelete', async function (doc) {
     if (doc) {
-        await doc.constructor.calculateAverageRatings(doc.product);
+        if (doc.product) {
+            await doc.constructor.calculateAverageRatings(doc.product, 'product');
+        } else if (doc.service) {
+            await doc.constructor.calculateAverageRatings(doc.service, 'service');
+        }
     }
 });
 

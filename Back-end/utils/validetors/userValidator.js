@@ -5,8 +5,8 @@ const User = require('../../models/user');
 const registerValidator = [
     check('userName')
         .notEmpty().withMessage('Name is required.')
-        .trim().isLength({ min: 3, max: 20 }).withMessage('Name must be between 3 and 20 characters.')
-        .matches(/^[A-Za-z0-9 ]+$/).withMessage('Name must contain only letters, numbers, and spaces.'),
+        .trim().isLength({ min: 3, max: 20 }).withMessage('Name must be between 3 and 20 characters.'),
+        // .matches(/^[A-Za-z0-9 ]+$/).withMessage('Name must contain only letters, numbers, and spaces.'),
 
     check('email')
         .notEmpty().withMessage('Email is required.')
